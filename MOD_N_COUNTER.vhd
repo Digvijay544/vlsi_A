@@ -4,7 +4,7 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
  
 entity MOD_N_COUNTER is 
     Port ( rst : in  STD_LOGIC; 
-     pr :  in STD_LOGIC; 
+				pr :  in STD_LOGIC; 
            clk : in  STD_LOGIC; 
            dir : in  STD_LOGIC; 
            Q : out  STD_LOGIC_VECTOR (4 downto 0)); 
