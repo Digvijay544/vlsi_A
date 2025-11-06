@@ -1,81 +1,66 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;
+USE IEEE.NUMERIC_STD.ALL;
 
-entity fifo is
-    generic (depth : integer := 16); --depth of fifo
-    port ( clk : in std_logic;
-           rst : in std_logic;
-           enr : in std_logic; --enable read,should be '0' when not in use.
-           enw : in std_logic; --enable write,should be '0' when not in use.
-           data_in : in std_logic_vector (7 downto 0); --input data
-           data_out : out std_logic_vector(7 downto 0); --output data
-           fifo_empty : out std_logic; --set as '1' when the queue is empty
-           fifo_full : out std_logic --set as '1' when the queue is full
-    );
-end fifo;
+entity FIFO is
+	 generic(depth:integer:=16);
+    Port ( rst : in  STD_LOGIC;
+           clk : in  STD_LOGIC;
+           Enr : in  STD_LOGIC;
+           Enw : in  STD_LOGIC;
+           Din : in  STD_LOGIC_VECTOR (7 downto 0);
+           Dout : out  STD_LOGIC_VECTOR (7 downto 0);
+           FifoFull : out  STD_LOGIC;
+           FifoEmpty : out  STD_LOGIC);
+end FIFO;
 
-architecture fifo_arch of fifo is
-
-type memory_type is array (0 to depth-1) of std_logic_vector(7 downto 0);
-signal memory : memory_type :=(others => (others => '0')); --memory for queue.
-signal readptr,writeptr : integer := 0; --read and write pointers.
-signal empty,full : std_logic := '0';
+architecture Behavioral of FIFO is
+type memory_type is array(0 to depth-1)of STD_LOGIC_VECTOR(7 downto 0);
+signal memory:memory_type:=(others =>(others =>'0'));
+signal readptr,writeptr:integer:=0;
+signal empty,full:STD_LOGIC:='1';
 
 begin
-
-fifo_empty <= empty;
-fifo_full <= full;
-
-process(Clk,rst)
---this is the number of elements stored in fifo at a time.
---this variable is used to decide whether the fifo is empty or full.
-variable num_elem : integer := 0;
-begin
-    if(rst = '1') then
-    
-        -- for i in 0 to depth-1 loop
-        --     ...
-        --     memory(i)<=(others=>'0');
-        --     end loop;
-        memory <= (others => (others=> '0'));
-        
-        data_out <= (others => '0');
-        empty <= '1';
-        full <= '0';
-        readptr <= 0;
-        writeptr <= 0;
-        num_elem := 0;
-        elsif(rising_edge(Clk)) then
-            if(enr = '1' and empty = '0') then --read
-                data_out <= memory(readptr);
-                readptr <= readptr + 1;
-                num_elem := num_elem-1;
-            end if;
-            if(enw = '1' and full = '0') then --write
-                memory(writeptr) <= data_in;
-                writeptr <= writeptr + 1;
-                num_elem := num_elem+1;
-            end if;
-            --rolling over of the indices
-            if(readptr = depth-1) then --resetting read pointer.
-                readptr <= 0;
-            end if;
-            if(writeptr = depth-1) then --resetting write pointer.
-                writeptr <= 0;
-            end if;
-            --setting empty and full flags.
-            if(num_elem = 0) then
-                empty <= '1';
-            else
-                empty <= '0';
-            end if;
-            if(num_elem = depth) then
-                full <= '1';
-            else
-                full <= '0';
-            end if;
-        end if;
-end process;
-
-end fifo_arch;
+	FifoFull<=full;
+	FifoEmpty<=empty;
+	process(rst,clk)
+	variable num:integer:=0;
+	begin
+		if(rst='1') then
+			memory<=(others=>(others =>'0'));
+			Dout<=(others =>'0');
+			full<='0';
+			empty<='1';
+			readptr<=0;
+			writeptr<=0;
+			num:=0;
+		elsif(falling_edge(clk))then
+			if(Enr='1' AND empty='0')then
+				Dout<=memory(readptr);
+				readptr<=readptr+1;
+				num:=num-1;
+			end if;
+			if(Enw='1' AND full='0')then
+				memory(writeptr)<=Din;
+				writeptr<=writeptr+1;
+				num:=num-1;
+			end if;
+			if(readptr=depth-1)then
+				readptr<=0;
+			end if;
+			if(writeptr=depth-1)then
+				writeptr<=0;
+			end if;
+			if(num=0)then
+				empty<='1';
+			else
+				empty<='0';
+			end if;
+			if(num=depth)then
+				full<='1';
+			else
+				full<='0';
+			end if;
+		end if;
+		end process;
+end Behavioral;
